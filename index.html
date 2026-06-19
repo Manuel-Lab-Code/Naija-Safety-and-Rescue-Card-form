@@ -145,16 +145,6 @@
             padding-right: 40px;
         }
 
-        .form-row.two-columns-mobile {
-            grid-template-columns: 1fr;
-        }
-
-        @media (min-width: 768px) {
-            .form-row.two-columns-mobile {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
         .info-box {
             background-color: #e8f4f8;
             border-left: 4px solid #1f4788;
@@ -325,26 +315,6 @@
             color: #666;
             margin-top: 4px;
             font-style: italic;
-        }
-
-        .card-preview {
-            background: linear-gradient(135deg, #1f4788 0%, #2d5aa8 100%);
-            color: white;
-            padding: 20px;      
-            border-radius: 5px;
-            margin: 20px 0;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .card-preview strong {
-            color: #FFD700;
-        }
-
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
         }
     </style>
 </head>
@@ -533,7 +503,7 @@
                     <div class="form-row full">
                         <div class="form-group">
                             <label for="allergies">Allergies</label>
-                            <textarea id="allergies" name="allergies" placeholder="List any known allergies (medications, foods, materials, etc.). Type 'None' if no known allergies"></textarea>
+                            <textarea id="allergies" name="allergies" placeholder="List any known allergies (medications, foods, etc.). Type 'None' if no known allergies"></textarea>
                             <div class="field-hint">Optional - Be specific (e.g., Penicillin, Shellfish, Latex)</div>
                         </div>
                     </div>
@@ -595,7 +565,7 @@
     <!-- Script -->
     <script>
         // Configuration - REPLACE WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbypIZJA_uiTSqXpvuJc2GjcInQ9FCUZdZpdLkXO5bffdAnPCsxyio89q7hStq3u6vCX/usercall?useCache=false';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/do';
 
         const form = document.getElementById('safetyCardForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -623,55 +593,39 @@
 
             try {
                 // Collect form data
-                const formData = {
-                    fullName: document.getElementById('fullName').value.trim(),
-                    email: document.getElementById('email').value.trim().toLowerCase(),
-                    phone: document.getElementById('phone').value.trim(),
-                    address: document.getElementById('address').value.trim(),
-                    state: document.getElementById('state').value.trim(),
-                    dateOfBirth: document.getElementById('dateOfBirth').value,
-                    gender: document.getElementById('gender').value,
-                    maritalStatus: document.getElementById('maritalStatus').value,
-                    occupation: document.getElementById('occupation').value.trim(),
-                    bloodGroup: document.getElementById('bloodGroup').value,
-                    genotype: document.getElementById('genotype').value,
-                    allergies: document.getElementById('allergies').value.trim(),
-                    medicinesTaken: document.getElementById('medicinesTaken').value.trim(),
-                    healthCondition: document.getElementById('healthCondition').value.trim(),
-                    emergencyContactName: document.getElementById('emergencyContactName').value.trim(),
-                    emergencyContactPhone: document.getElementById('emergencyContactPhone').value.trim()
-                };
+                const formElement = document.getElementById('safetyCardForm');
+                const formData = new FormData(formElement);
 
-                // Send to Google Apps Script
+                // Log what we're sending
+                console.log('Sending form data to:', WEB_APP_URL);
+                console.log('Form data:', Object.fromEntries(formData));
+
+                // Send to Google Apps Script using form-encoded data
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: JSON.stringify(formData),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    body: formData,
+                    mode: 'no-cors' // IMPORTANT: Allows cross-origin requests
                 });
 
-                const result = await response.json();
+                // With no-cors mode, we can't read the response
+                // So we'll assume success if no error is thrown
+                console.log('Request sent successfully');
+                
+                // Show success message
+                successMessage.style.display = 'block';
+                successMessage.scrollIntoView({ behavior: 'smooth' });
 
-                if (result.success) {
-                    // Show success message
-                    successMessage.style.display = 'block';
-                    successMessage.scrollIntoView({ behavior: 'smooth' });
+                // Reset form
+                form.reset();
 
-                    // Reset form
-                    form.reset();
+                // Hide success message after 10 seconds
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 10000);
 
-                    // Hide success message after 10 seconds
-                    setTimeout(() => {
-                        successMessage.style.display = 'none';
-                    }, 10000);
-                } else {
-                    // Show error message
-                    showError(result.message || 'An error occurred while processing your request.');
-                }
             } catch (error) {
                 console.error('Error:', error);
-                showError('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+                showError('Error: ' + error.toString());
             } finally {
                 // Re-enable button and hide spinner
                 submitBtn.disabled = false;
@@ -772,7 +726,7 @@
 
         // Log form setup
         console.log('Naija Emergency Safety Card Form - Loaded Successfully');
-        console.log('Web App URL configured:', WEB_APP_URL !== 'https://script.google.com/macros/d/YOUR_DEPLOYMENT_ID/usercall?useCache=false' ? 'Yes' : 'No - Please configure');
+        console.log('Web App URL configured:', WEB_APP_URL !== 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/do' ? 'Yes' : 'No - Please configure');
     </script>
 </body>
 </html>
